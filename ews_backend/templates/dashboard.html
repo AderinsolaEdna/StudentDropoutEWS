@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EWS Dropout Prediction Dashboard</title>
+    <!-- Google Fonts: Inter and Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React 18, React-IS, Prop-Types, Recharts, Axios, Babel, and Lucide CDN Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-is@18/umd/react-is.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js" crossorigin></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" crossorigin></script>
+    <script src="https://unpkg.com/lucide@latest" crossorigin></script>
+
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-glass: rgba(226, 232, 240, 0.8);
+            --bg-glass: rgba(255, 255, 255, 0.8);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --risk-high: #ef4444;
+            --risk-high-bg: #fee2e2;
+            --risk-high-text: #991b1b;
+            --risk-high-glow: rgba(239, 68, 68, 0.2);
+            --risk-med: #f97316;
+            --risk-med-bg: #ffedd5;
+            --risk-med-text: #9a3412;
+            --risk-med-glow: rgba(249, 115, 22, 0.2);
+            --risk-low: #10b981;
+            --risk-low-bg: #d1fae5;
+            --risk-low-text: #065f46;
+            --risk-low-glow: rgba(16, 185, 129, 0.2);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1.25rem;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0B0F19;
+            --bg-secondary: #151D30;
+            --bg-tertiary: #1F2A45;
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --border-color: #2D3D60;
+            --border-glass: rgba(45, 61, 96, 0.5);
+            --bg-glass: #151D30;
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --risk-high: #EF4444;
+            --risk-high-bg: rgba(239, 68, 68, 0.15);
+            --risk-high-text: #F87171;
+            --risk-high-glow: rgba(239, 68, 68, 0.25);
+            --risk-med: #F59E0B;
+            --risk-med-bg: rgba(245, 158, 11, 0.15);
+            --risk-med-text: #FBBF24;
+            --risk-med-glow: rgba(245, 158, 11, 0.25);
+            --risk-low: #10B981;
+            --risk-low-bg: rgba(16, 185, 129, 0.15);
+            --risk-low-text: #34D399;
+            --risk-low-glow: rgba(16, 185, 129, 0.25);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.55), 0 2px 4px -2px rgba(0, 0, 0, 0.55);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.65), 0 4px 6px -4px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .brand-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.15rem;
+            color: var(--text-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-primary);
+            background-color: var(--bg-tertiary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .theme-toggle-btn:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-tertiary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .stat-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-high {
+            background-color: var(--risk-high-bg);
+            color: var(--risk-high-text);
+            box-shadow: 0 0 8px var(--risk-high-glow);
+        }
+
+        .badge-med {
+            background-color: var(--risk-med-bg);
+            color: var(--risk-med-text);
+            box-shadow: 0 0 8px var(--risk-med-glow);
+        }
+
+        .badge-low {
+            background-color: var(--risk-low-bg);
+            color: var(--risk-low-text);
+            box-shadow: 0 0 8px var(--risk-low-glow);
+        }
+
+        .badge-status-open {
+            background-color: #fef08a;
+            color: #854d0e;
+        }
+
+        .badge-status-in_progress {
+            background-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .badge-status-resolved {
+            background-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .ews-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .ews-table th {
+            padding: 0.875rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            background-color: var(--bg-tertiary);
+        }
+
+        .ews-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .ews-table tr:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(11, 15, 25, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .gauge-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        .gauge-percentage {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* View Mode Toggles */
+        .mode-switcher {
+            display: flex;
+            background-color: var(--bg-tertiary);
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mode-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .driver-bar-container {
+            margin-bottom: 1.25rem;
+        }
+
+        .driver-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.35rem;
+            font-size: 0.85rem;
+        }
+
+        .driver-bar-outer {
+            height: 8px;
+            background-color: var(--bg-tertiary);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .driver-bar-inner {
+            height: 100%;
+            border-radius: 9999px;
+            background-color: var(--risk-high);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- App JSX mounting script (runs JSX translation directly in browser via Babel) -->
+    {% verbatim %}
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { 
+            BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+            LineChart, Line
+        } = Recharts;
+
+        // Custom Axios Setup with Base URL
+        const api = axios.create({
+            baseURL: ''
+        });
+
+        function App() {
+            const [token, setToken] = useState(localStorage.getItem('ews_token') || '');
+            const [user, setUser] = useState(JSON.parse(localStorage.getItem('ews_user') || 'null'));
+            const [activeView, setActiveView] = useState('overview');
+            const [selectedStudentId, setSelectedStudentId] = useState(null);
+            const [theme, setTheme] = useState(localStorage.getItem('ews_theme') || 'dark');
+
+            // Login states
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [loginLoading, setLoginLoading] = useState(false);
+            const [loginError, setLoginError] = useState(null);
+
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('ews_theme', theme);
+            }, [theme]);
+
+            const handleLogin = async (e) => {
+                if (e) e.preventDefault();
+                setLoginLoading(true);
+                setLoginError(null);
+                try {
+                    const response = await api.post('/api/login/', { username, password });
+                    const { token: userToken, role, email, username: userName } = response.data;
+                    setToken(userToken);
+                    const profile = { username: userName, role, email };
+                    setUser(profile);
+                    localStorage.setItem('ews_token', userToken);
+                    localStorage.setItem('ews_user', JSON.stringify(profile));
+                } catch (err) {
+                    setLoginError(err.response?.data?.non_field_errors?.[0] || "Invalid credentials. Ensure user is created and backend is running.");
+                } finally {
+                    setLoginLoading(false);
+                }
+            };
+
+            const triggerQuickLogin = (userType) => {
+                setUsername(userType);
+                setPassword('password123');
+                // Auto trigger login submit
+                setTimeout(() => {
+                    document.getElementById('login-submit-btn').click();
+                }, 100);
+            };
+
+            const handleLogout = () => {
+                setToken('');
+                setUser(null);
+                localStorage.removeItem('ews_token');
+                localStorage.removeItem('ews_user');
+                setActiveView('overview');
+            };
+
+            if (!token) {
+                return (
+                    <div className="login-overlay">
+                        <div className="login-card">
+                            <div style={{ marginBottom: '1.5rem', fontSize: '2.5rem' }}>⚠️</div>
+                            <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>EWS Risk Dashboard</h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>AI student dropout early warning system</p>
+                            <form onSubmit={handleLogin}>
+                                <div className="form-group">
+                                    <label className="form-label">Username</label>
+                                    <input type="text" className="form-input" value={username} onChange={e => setUsername(e.target.value)} required />
+                                </div>
+                                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                                    <label className="form-label">Password</label>
+                                    <input type="password" className="form-input" value={password} onChange={e => setPassword(e.target.value)} required />
+                                </div>
+                                {loginError && (
+                                    <p style={{ color: 'var(--risk-high)', fontSize: '0.8rem', marginBottom: '1rem', fontWeight: 600, textAlign: 'left' }}>
+                                        {loginError}
+                                    </p>
+                                )}
+                                <button id="login-submit-btn" type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }} disabled={loginLoading}>
+                                    {loginLoading ? "Verifying..." : "Sign In"}
+                                </button>
+                            </form>
+
+                            <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: '0.75rem', fontWeight: 700 }}>
+                                    Development Quick-Logins
+                                </span>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                    <button onClick={() => triggerQuickLogin('admin')} className="btn btn-secondary btn-sm" style={{ fontSize: '0.72rem' }}>
+                                        Admin Account
+                                    </button>
+                                    <button onClick={() => triggerQuickLogin('adviser')} className="btn btn-secondary btn-sm" style={{ fontSize: '0.72rem' }}>
+                                        Adviser Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="app-container">
+                    <header className="main-header">
+                        <div className="brand-section">
+                            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>Early Warning System (EWS) Predictor</h1>
+                            <p style={{ fontSize: '0.65rem', fontWeight: 700, margin: 0, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>AI-DRIVEN DROPOUT PREDICTION & INTERVENTION FOR NIGERIAN UNIVERSITIES</p>
+                        </div>
+                        <nav className="nav-links">
+                            <span className={`nav-link ${activeView === 'overview' || activeView === 'student-detail' ? 'active' : ''}`} onClick={() => setActiveView('overview')}>
+                                Department Overview
+                            </span>
+                            <span className={`nav-link ${activeView === 'alerts' ? 'active' : ''}`} onClick={() => setActiveView('alerts')}>
+                                Alert Management
+                            </span>
+                            {user?.role === 'admin' && (
+                                <span className={`nav-link ${activeView === 'admin-console' ? 'active' : ''}`} onClick={() => setActiveView('admin-console')}>
+                                    Admin Ingest Console
+                                </span>
+                            )}
+                        </nav>
+                        <div className="header-actions">
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: '1rem' }}>
+                                👤 <strong>{user?.username}</strong> ({user?.role})
+                            </span>
+                            <button onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} className="theme-toggle-btn">
+                                {theme === 'dark' ? '☀️' : '🌙'}
+                            </button>
+                            <button onClick={handleLogout} className="theme-toggle-btn">
+                                🚪
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="main-content">
+                        {activeView === 'overview' && (
+                            <DashboardView token={token} />
+                        )}
+                        {activeView === 'alerts' && (
+                            <AlertsView token={token} />
+                        )}
+                        {activeView === 'admin-console' && (
+                            <AdminConsoleView token={token} user={user} />
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        // Integrated Side-by-Side Dashboard View
+        function DashboardView({ token }) {
+            const [selectedStudentId, setSelectedStudentId] = useState(null);
+            const [customResult, setCustomResult] = useState(null);
+            const [activeMode, setActiveMode] = useState('directory'); // 'directory' or 'manual'
+
+            return (
+                <div>
+                    <div className="dashboard-layout">
+                        {/* Left Column: Directory or Manual Entry */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div className="card" style={{ marginBottom: 0 }}>
+                                <div className="mode-switcher" style={{ marginBottom: '1.5rem' }}>
+                                    <button 
+                                        className={`mode-btn ${activeMode === 'directory' ? 'active' : ''}`}
+                                        onClick={() => { setActiveMode('directory'); setCustomResult(null); }}
+                                    >
+                                        Student Database Directory
+                                    </button>
+                                    <button 
+                                        className={`mode-btn ${activeMode === 'manual' ? 'active' : ''}`}
+                                        onClick={() => { setActiveMode('manual'); setSelectedStudentId(null); }}
+                                    >
+                                        Predict Custom Student
+                                    </button>
+                                </div>
+
+                                {activeMode === 'directory' ? (
+                                    <DirectorySubView onSelect={setSelectedStudentId} token={token} selectedStudentId={selectedStudentId} />
+                                ) : (
+                                    <ManualEntrySubView onResult={setCustomResult} token={token} />
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Column: Case Analysis */}
+                        <div className="card">
+                            <DetailPanelSubView studentId={selectedStudentId} customResult={customResult} token={token} />
+                        </div>
+                    </div>
+
+                    {/* Bottom Section: Model Benchmarks */}
+                    <ModelBenchmarksView />
+                </div>
+            );
+        }
+
+        // Student warning directory subview
+        function DirectorySubView({ onSelect, token, selectedStudentId }) {
+            const [students, setStudents] = useState([]);
+            const [total, setTotal] = useState(0);
+            const [page, setPage] = useState(1);
+            const [pages, setPages] = useState(1);
+
+            const [faculty, setFaculty] = useState('All');
+            const [riskTier, setRiskTier] = useState('All');
+            const [search, setSearch] = useState('');
+            const [sortBy, setSortBy] = useState('student_id');
+            const [sortOrder, setSortOrder] = useState('asc');
+            const [loading, setLoading] = useState(true);
+
+            const fetchStudents = async () => {
+                setLoading(true);
+                try {
+                    const res = await api.get('/api/students/', {
+                        headers: { Authorization: `Token ${token}` },
+                        params: { page, faculty, risk_tier: riskTier, search, sort_by: sortBy, sort_order: sortOrder }
+                    });
+                    setStudents(res.data.results || []);
+                    setTotal(res.data.count || 0);
+                    setPages(Math.ceil((res.data.count || 1) / 15));
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                fetchStudents();
+            }, [page, faculty, riskTier, search, sortBy, sortOrder]);
+
+            const toggleSort = (field) => {
+                if (sortBy === field) {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                    setSortBy(field);
+                    setSortOrder('asc');
+                }
+                setPage(1);
+            };
+
+            return (
+                <div>
+                    <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Student Records Database</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                        Showing all student files in Nigerian contextual dataset
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+                        <input 
+                            type="text" 
+                            placeholder="Search Student ID (e.g. STU-0012)..." 
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                            className="form-input" 
+                            style={{ flex: 1, minWidth: '160px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                        />
+                        <select value={riskTier} onChange={e => { setRiskTier(e.target.value); setPage(1); }} className="form-input" style={{ width: '150px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}>
+                            <option value="All">All Risk Levels</option>
+                            <option value="High Risk">High Risk Only</option>
+                            <option value="Medium Risk">Medium Risk Only</option>
+                            <option value="Low Risk">Low Risk Only</option>
+                        </select>
+                        <select value={faculty} onChange={e => { setFaculty(e.target.value); setPage(1); }} className="form-input" style={{ width: '150px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}>
+                            <option value="All">All Faculties</option>
+                            <option value="Sciences">Faculty of Sciences</option>
+                            <option value="Engineering">Faculty of Engineering</option>
+                            <option value="Arts">Faculty of Arts</option>
+                            <option value="Social_Sciences">Faculty of Social Sciences</option>
+                            <option value="Law">Faculty of Law</option>
+                            <option value="Medicine">Faculty of Medicine</option>
+                        </select>
+                    </div>
+
+                    {loading ? <div className="spinner"></div> : (
+                        <div className="table-wrapper" style={{ minHeight: '380px' }}>
+                            <table className="ews-table" style={{ fontSize: '0.85rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th onClick={() => toggleSort('student_id')} style={{ cursor: 'pointer' }}>STUDENT ID ⇅</th>
+                                        <th>GENDER</th>
+                                        <th>YEAR</th>
+                                        <th onClick={() => toggleSort('cgpa')} style={{ cursor: 'pointer' }}>CGPA ⇅</th>
+                                        <th onClick={() => toggleSort('probability')} style={{ cursor: 'pointer' }}>RISK PROB {sortBy === 'probability' ? (sortOrder === 'asc' ? '▲' : '▼') : '⇅'}</th>
+                                        <th>RISK TIER</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {students.length > 0 ? students.map((s, idx) => (
+                                        <tr key={idx} style={{ backgroundColor: selectedStudentId === s.student_id ? 'var(--bg-tertiary)' : 'transparent' }}>
+                                            <td>
+                                                <span 
+                                                    style={{ fontWeight: 700, color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
+                                                    onClick={() => onSelect(s.student_id)}
+                                                >
+                                                    {s.student_id}
+                                                </span>
+                                            </td>
+                                            <td>{s.gender || 'Unknown'}</td>
+                                            <td>Year {s.year_of_study}</td>
+                                            <td>{s.cgpa?.toFixed(2)}</td>
+                                            <td style={{ fontWeight: 700 }}>{(s.risk_probability * 100).toFixed(1)}%</td>
+                                            <td>
+                                                <span className={`badge badge-${s.risk_tier === 'High Risk' ? 'high' : s.risk_tier === 'Medium Risk' ? 'med' : 'low'}`} style={{ padding: '0.2rem 0.625rem', fontSize: '0.72rem' }}>
+                                                    {s.risk_tier}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No student records found.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+
+                            {pages > 1 && (
+                                <div className="pagination-controls" style={{ paddingHeight: '0.5rem', fontSize: '0.78rem' }}>
+                                    <span>Page {page} of {pages} ({total} recs)</span>
+                                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                        <button className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+                                        <button className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }} disabled={page === pages} onClick={() => setPage(p => p + 1)}>Next</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Custom prediction manual entry subview
+        function ManualEntrySubView({ onResult, token }) {
+            const [formData, setFormData] = useState(getInitialFormState());
+            const [submitting, setSubmitting] = useState(false);
+            const [err, setErr] = useState(null);
+
+            function getInitialFormState() {
+                return {
+                    student_id: '', first_name: '', last_name: '', email: '',
+                    Gender: '1', Age_at_Matriculation: '20', Marital_Status_Binary: '0', Special_Needs_Status: '0',
+                    Mother_Education_Level: '3', Father_Education_Level: '3', Mother_Occupation: '2', Father_Occupation: '2',
+                    First_Generation_Student: '0', UTME_PostUME_Score: '140.0', Secondary_School_Exit_Grade: '135.0',
+                    Study_Mode: '1', Faculty: 'Sciences', Year_of_Study: '2', Non_Resident_Student: '0', Hostel_Residency: '1',
+                    School_Fees_Payment_Status: '1', Fee_Arrears_Status: '0', Bursary_Scholarship_Status: '0',
+                    Units_Registered_Semester_1: '6', Units_Passed_Semester_1: '6', Assessments_Sat_Semester_1: '6', Units_No_Assessment_Semester_1: '0', GPA_Semester_1_5pt: '3.5', Pass_Rate_Semester_1: '1.0',
+                    Units_Registered_Semester_2: '6', Units_Passed_Semester_2: '5', Assessments_Sat_Semester_2: '6', Units_No_Assessment_Semester_2: '0', GPA_Semester_2_5pt: '3.2', Pass_Rate_Semester_2: '0.83',
+                    CGPA_5point_Scale: '3.35', GPA_Change: '-0.3'
+                };
+            }
+
+            const fillDemoData = (type) => {
+                if (type === 'high') {
+                    setFormData({
+                        student_id: `STU-DEMO-${Math.floor(1000 + Math.random()*9000)}`,
+                        first_name: 'Uche', last_name: 'Adebayo', email: 'uche.adebayo@univel.edu.ng',
+                        Gender: '1', Age_at_Matriculation: '21', Marital_Status_Binary: '0', Special_Needs_Status: '0',
+                        Mother_Education_Level: '2', Father_Education_Level: '3', Mother_Occupation: '2', Father_Occupation: '1',
+                        First_Generation_Student: '1', UTME_PostUME_Score: '110.0', Secondary_School_Exit_Grade: '105.0',
+                        Study_Mode: '1', Faculty: 'Engineering', Year_of_Study: '3', Non_Resident_Student: '1', Hostel_Residency: '0',
+                        School_Fees_Payment_Status: '0', Fee_Arrears_Status: '1', Bursary_Scholarship_Status: '0',
+                        Units_Registered_Semester_1: '7', Units_Passed_Semester_1: '2', Assessments_Sat_Semester_1: '3', Units_No_Assessment_Semester_1: '4', GPA_Semester_1_5pt: '1.10', Pass_Rate_Semester_1: '0.28',
+                        Units_Registered_Semester_2: '7', Units_Passed_Semester_2: '0', Assessments_Sat_Semester_2: '1', Units_No_Assessment_Semester_2: '6', GPA_Semester_2_5pt: '0.00', Pass_Rate_Semester_2: '0.00',
+                        CGPA_5point_Scale: '0.55', GPA_Change: '-1.10'
+                    });
+                } else {
+                    setFormData({
+                        student_id: `STU-DEMO-${Math.floor(1000 + Math.random()*9000)}`,
+                        first_name: 'Amara', last_name: 'Eze', email: 'amara.eze@univel.edu.ng',
+                        Gender: '0', Age_at_Matriculation: '18', Marital_Status_Binary: '0', Special_Needs_Status: '0',
+                        Mother_Education_Level: '14', Father_Education_Level: '14', Mother_Occupation: '9', Father_Occupation: '10',
+                        First_Generation_Student: '0', UTME_PostUME_Score: '175.0', Secondary_School_Exit_Grade: '168.0',
+                        Study_Mode: '1', Faculty: 'Sciences', Year_of_Study: '2', Non_Resident_Student: '0', Hostel_Residency: '1',
+                        School_Fees_Payment_Status: '1', Fee_Arrears_Status: '0', Bursary_Scholarship_Status: '1',
+                        Units_Registered_Semester_1: '6', Units_Passed_Semester_1: '6', Assessments_Sat_Semester_1: '6', Units_No_Assessment_Semester_1: '0', GPA_Semester_1_5pt: '4.75', Pass_Rate_Semester_1: '1.0',
+                        Units_Registered_Semester_2: '6', Units_Passed_Semester_2: '6', Assessments_Sat_Semester_2: '6', Units_No_Assessment_Semester_2: '0', GPA_Semester_2_5pt: '4.85', Pass_Rate_Semester_2: '1.0',
+                        CGPA_5point_Scale: '4.80', GPA_Change: '0.10'
+                    });
+                }
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setSubmitting(true);
+                setErr(null);
+
+                const payload = {};
+                Object.keys(formData).forEach(k => {
+                    const val = formData[k];
+                    if (['student_id', 'first_name', 'last_name', 'email', 'Faculty'].includes(k)) {
+                        payload[k] = val;
+                    } else if (['UTME_PostUME_Score', 'Secondary_School_Exit_Grade', 'GPA_Semester_1_5pt', 'Pass_Rate_Semester_1', 'GPA_Semester_2_5pt', 'Pass_Rate_Semester_2', 'CGPA_5point_Scale', 'GPA_Change'].includes(k)) {
+                        payload[k] = parseFloat(val) || 0.0;
+                    } else {
+                        payload[k] = parseInt(val) || 0;
+                    }
+                });
+
+                try {
+                    const res = await api.post('/api/students/manual-entry/', payload, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    onResult(res.data);
+                } catch (e) {
+                    setErr(e.response?.data || { error: "Failed to submit student record." });
+                } finally {
+                    setSubmitting(false);
+                }
+            };
+
+            return (
+                <div>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
+                        <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.72rem' }} onClick={() => fillDemoData('high')}>Load High-Risk Demo</button>
+                        <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.72rem' }} onClick={() => fillDemoData('low')}>Load Low-Risk Demo</button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Student ID</label>
+                            <input type="text" value={formData.student_id} onChange={e => setFormData({...formData, student_id: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }} required />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>First Name</label>
+                            <input type="text" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }} required />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Last Name</label>
+                            <input type="text" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }} required />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Faculty</label>
+                            <select value={formData.Faculty} onChange={e => setFormData({...formData, Faculty: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }}>
+                                <option value="Sciences">Sciences</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Arts">Arts</option>
+                                <option value="Social_Sciences">Social Sciences</option>
+                                <option value="Law">Law</option>
+                                <option value="Medicine">Medicine</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>CGPA (Scale 5.0)</label>
+                            <input type="number" step="0.01" value={formData.CGPA_5point_Scale} onChange={e => setFormData({...formData, CGPA_5point_Scale: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }} required />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>School Fees Paid</label>
+                            <select value={formData.School_Fees_Payment_Status} onChange={e => setFormData({...formData, School_Fees_Payment_Status: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }}>
+                                <option value="1">Paid</option>
+                                <option value="0">Unpaid</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Age Matriculated</label>
+                            <input type="number" value={formData.Age_at_Matriculation} onChange={e => setFormData({...formData, Age_at_Matriculation: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }} required />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>First Gen Student</label>
+                            <select value={formData.First_Generation_Student} onChange={e => setFormData({...formData, First_Generation_Student: e.target.value})} className="form-input" style={{ padding: '0.4rem 0.625rem', fontSize: '0.85rem' }}>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.5rem' }} disabled={submitting}>
+                                {submitting ? "Analyzing..." : "Evaluate Student"}
+                            </button>
+                        </div>
+                    </form>
+                    {err && <p style={{ color: 'var(--risk-high)', fontSize: '0.8rem', marginTop: '0.5rem' }}>{JSON.stringify(err)}</p>}
+                </div>
+            );
+        }
+
+        // Detailed evaluation results panel
+        function DetailPanelSubView({ studentId, customResult, token }) {
+            const [profile, setProfile] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [err, setErr] = useState(null);
+            const [subTab, setSubTab] = useState('Academic');
+
+            useEffect(() => {
+                if (!studentId) {
+                    setProfile(null);
+                    return;
+                }
+                const getProfile = async () => {
+                    setLoading(true);
+                    setErr(null);
+                    try {
+                        const res = await api.get(`/api/students/${studentId}/`, {
+                            headers: { Authorization: `Token ${token}` }
+                        });
+                        setProfile(res.data);
+                    } catch (e) {
+                        setErr(e.response?.data?.error || "Error loading profile.");
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                getProfile();
+            }, [studentId, token]);
+
+            if (loading) return <div className="spinner"></div>;
+            if (err) return <p style={{ color: 'var(--risk-high)' }}>{err}</p>;
+
+            let dataObj = null;
+            if (studentId && profile) {
+                dataObj = {
+                    name: `${profile.first_name} ${profile.last_name}`,
+                    id: profile.student_id,
+                    email: profile.email,
+                    faculty: profile.features.Faculty,
+                    probability: profile.prediction.probability,
+                    tier: profile.prediction.risk_tier,
+                    drivers: profile.prediction.top_drivers,
+                    intervention: profile.prediction.actionable_intervention,
+                    features: profile.features
+                };
+            } else if (customResult) {
+                dataObj = {
+                    name: `${customResult.student.first_name} ${customResult.student.last_name}`,
+                    id: customResult.student.student_id,
+                    email: customResult.student.email,
+                    faculty: customResult.student.faculty,
+                    probability: customResult.prediction.probability,
+                    tier: customResult.prediction.risk_tier,
+                    drivers: customResult.prediction.top_drivers,
+                    intervention: customResult.prediction.actionable_intervention,
+                    features: customResult.features
+                };
+            }
+
+            if (!dataObj) {
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>
+                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
+                        <h4>Evaluation Panel</h4>
+                        <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>Select a student from the warning directory or run a custom evaluation to view details.</p>
+                    </div>
+                );
+            }
+
+            const prob = dataObj.probability;
+            const tier = dataObj.tier;
+            const strokeWidth = 8;
+            const circum = 2 * Math.PI * 50; // Circular progress ring parameters
+            const offset = circum - (prob * circum);
+
+            let gaugeColor = 'var(--risk-low)';
+            if (tier === 'High Risk') gaugeColor = 'var(--risk-high)';
+            else if (tier === 'Medium Risk') gaugeColor = 'var(--risk-med)';
+
+            // Context Mappings for attributes grid tabs
+            const ACADEMIC_FIELDS = [
+                { label: 'CGPA', key: 'CGPA_5point_Scale' },
+                { label: 'GPA SEMESTER 1', key: 'GPA_Semester_1_5pt' },
+                { label: 'GPA SEMESTER 2', key: 'GPA_Semester_2_5pt' },
+                { label: 'GPA CHANGE', key: 'GPA_Change' },
+                { label: 'REG UNITS S1', key: 'Units_Registered_Semester_1' },
+                { label: 'PASS UNITS S1', key: 'Units_Passed_Semester_1' },
+                { label: 'PASS RATE S1', key: 'Pass_Rate_Semester_1', format: v => `${Math.round(v * 100)}%` },
+                { label: 'REG UNITS S2', key: 'Units_Registered_Semester_2' },
+                { label: 'PASS UNITS S2', key: 'Units_Passed_Semester_2' },
+                { label: 'PASS RATE S2', key: 'Pass_Rate_Semester_2', format: v => `${Math.round(v * 100)}%` },
+            ];
+
+            const BACKGROUND_FIELDS = [
+                { label: 'AGE MATRICULATED', key: 'Age_at_Matriculation' },
+                { label: 'GENDER', key: 'Gender', format: v => v === 1 ? 'Male' : (v === 0 ? 'Female' : v) },
+                { label: 'MARITAL STATUS', key: 'Marital_Status_Binary', format: v => v === 1 ? 'Married' : 'Single' },
+                { label: 'SPECIAL NEEDS', key: 'Special_Needs_Status', format: v => v === 1 ? 'Yes' : 'No' },
+                { label: 'MOTHER EDUCATION', key: 'Mother_Education_Level' },
+                { label: 'FATHER EDUCATION', key: 'Father_Education_Level' },
+                { label: 'MOTHER OCCUPATION', key: 'Mother_Occupation' },
+                { label: 'FATHER OCCUPATION', key: 'Father_Occupation' },
+            ];
+
+            const FINANCIAL_FIELDS = [
+                { label: 'SCHOOL FEES PAID', key: 'School_Fees_Payment_Status', format: v => v === 1 ? 'Paid' : 'Unpaid' },
+                { label: 'FEE ARREARS', key: 'Fee_Arrears_Status', format: v => v === 1 ? 'Yes' : 'No' },
+                { label: 'BURSARY/SCHOLARSHIP', key: 'Bursary_Scholarship_Status', format: v => v === 1 ? 'Yes' : 'No' },
+            ];
+
+            const SOCIO_DEM_FIELDS = [
+                { label: 'FIRST GENERATION', key: 'First_Generation_Student', format: v => v === 1 ? 'Yes' : 'No' },
+                { label: 'NON-RESIDENT', key: 'Non_Resident_Student', format: v => v === 1 ? 'Yes' : 'No' },
+                { label: 'HOSTEL RESIDENCY', key: 'Hostel_Residency', format: v => v === 1 ? 'Yes' : 'No' },
+            ];
+
+            let fieldsToRender = [];
+            if (subTab === 'Academic') fieldsToRender = ACADEMIC_FIELDS;
+            else if (subTab === 'Background') fieldsToRender = BACKGROUND_FIELDS;
+            else if (subTab === 'Financial') fieldsToRender = FINANCIAL_FIELDS;
+            else if (subTab === 'Socio-Dem') fieldsToRender = SOCIO_DEM_FIELDS;
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                        <div>
+                            <span 
+                                style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.25rem' }}
+                            >
+                                {dataObj.id}
+                            </span>
+                            <span style={{ fontSize: '1.25rem', fontWeight: 600 }}> 's Risk Profile</span>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>Detailed prognostic factors | Faculty of {dataObj.faculty.replace(/_/g, ' ')}</p>
+                        </div>
+                    </div>
+
+                    {/* Circular Progress Gauge */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem 0' }}>
+                        <div className="gauge-container" style={{ width: '180px', height: '180px' }}>
+                            <svg width="150" height="150" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" strokeWidth={strokeWidth} />
+                                <circle 
+                                    cx="60" 
+                                    cy="60" 
+                                    r="50" 
+                                    fill="none" 
+                                    stroke={gaugeColor} 
+                                    strokeWidth={strokeWidth} 
+                                    strokeDasharray={circum} 
+                                    strokeDashoffset={offset} 
+                                    strokeLinecap="round" 
+                                    transform="rotate(-90 60 60)" 
+                                />
+                            </svg>
+                            <div className="gauge-percentage" style={{ bottom: 'auto', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>{(prob * 100).toFixed(1)}%</span>
+                                <span style={{ fontSize: '0.625rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginTop: '-0.25rem' }}>Probability</span>
+                            </div>
+                        </div>
+
+                        <div className={`badge badge-${tier === 'High Risk' ? 'high' : tier === 'Medium Risk' ? 'med' : 'low'}`} style={{ padding: '0.5rem 1.75rem', borderRadius: '50px', fontSize: '0.9rem', fontWeight: 700, border: `2px solid ${gaugeColor}`, color: gaugeColor, backgroundColor: 'transparent', marginTop: '1rem' }}>
+                            {tier}
+                        </div>
+                    </div>
+
+                    {/* Contributing Risk Drivers */}
+                    <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Contributing Risk Drivers</span>
+                        <div style={{ margin: '0.4rem 0' }}>
+                            {dataObj.drivers?.map((d, i) => (
+                                <div key={i} className="driver-bar-container" style={{ marginBottom: '0.5rem' }}>
+                                    <div className="driver-info" style={{ fontSize: '0.75rem' }}>
+                                        <span style={{ fontWeight: 600 }}>{d.replace(/_/g, ' ')}</span>
+                                        <span>Value: {dataObj.features[d]}</span>
+                                    </div>
+                                    <div className="driver-bar-outer" style={{ height: '5px' }}>
+                                        <div className="driver-bar-inner" style={{ width: '80%', backgroundColor: gaugeColor }}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: `4px solid ${gaugeColor}`, fontSize: '0.82rem' }}>
+                        <strong>Actionable Intervention:</strong>
+                        <p style={{ marginTop: '0.25rem', lineHeight: '1.4' }}>{dataObj.intervention}</p>
+                    </div>
+
+                    {/* Student Profile Values with Sub-Tabs */}
+                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Student Profile Values</span>
+                        
+                        <div style={{ display: 'flex', gap: '0.85rem', borderBottom: '1px solid var(--border-color)', margin: '0.5rem 0 0.75rem 0', paddingBottom: '0.25rem', overflowX: 'auto' }}>
+                            {['Academic', 'Background', 'Financial', 'Socio-Dem'].map(tab => (
+                                <span 
+                                    key={tab} 
+                                    style={{ 
+                                        cursor: 'pointer', 
+                                        fontSize: '0.82rem', 
+                                        fontWeight: 600, 
+                                        color: subTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
+                                        borderBottom: subTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
+                                        paddingBottom: '0.25rem',
+                                        transition: 'var(--transition)',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    onClick={() => setSubTab(tab)}
+                                >
+                                    {tab}
+                                </span>
+                            ))}
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
+                            {fieldsToRender.map((f, i) => {
+                                const rawVal = dataObj.features[f.key];
+                                const val = f.format ? f.format(rawVal) : rawVal;
+                                return (
+                                    <div key={i} style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
+                                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 600 }}>{f.label}</span>
+                                        <div style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 700, marginTop: '0.15rem' }}>{val !== undefined ? val : 'N/A'}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Model Execution Benchmarks Sub-component
+        function ModelBenchmarksView() {
+            const [showVis, setShowVis] = useState(false);
+
+            return (
+                <div className="card" style={{ marginTop: '2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '1.25rem' }}>📊</span>
+                        <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Model Execution Benchmarks (Stratified 10-Fold CV)</h3>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                        Comparative evaluation metrics computed strictly on held-out test data
+                    </p>
+
+                    <div className="table-wrapper">
+                        <table className="ews-table" style={{ fontSize: '0.85rem' }}>
+                            <thead>
+                                <tr>
+                                    <th>MODEL NAME</th>
+                                    <th>ACCURACY</th>
+                                    <th>PRECISION (DROPOUT)</th>
+                                    <th>RECALL (DROPOUT)</th>
+                                    <th>F1-SCORE (DROPOUT)</th>
+                                    <th>ROC-AUC SCORE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style={{ fontWeight: 600 }}>Logistic Regression</td>
+                                    <td>86.10%</td>
+                                    <td>0.7993</td>
+                                    <td>0.7570</td>
+                                    <td>0.7776</td>
+                                    <td>0.9067</td>
+                                </tr>
+                                <tr>
+                                    <td style={{ fontWeight: 600 }}>Decision Tree</td>
+                                    <td>84.52%</td>
+                                    <td>0.7394</td>
+                                    <td>0.7993</td>
+                                    <td>0.7682</td>
+                                    <td>0.9068</td>
+                                </tr>
+                                <tr>
+                                    <td style={{ fontWeight: 600 }}>Random Forest</td>
+                                    <td>88.59%</td>
+                                    <td>0.8188</td>
+                                    <td>0.8275</td>
+                                    <td>0.8231</td>
+                                    <td>0.9320</td>
+                                </tr>
+                                <tr style={{ backgroundColor: 'rgba(59, 130, 246, 0.06)' }}>
+                                    <td style={{ fontWeight: 700 }}>
+                                        XGBoost 
+                                        <span className="badge" style={{ backgroundColor: 'var(--primary)', color: 'white', fontSize: '0.65rem', marginLeft: '0.5rem', padding: '0.15rem 0.4rem', textTransform: 'uppercase' }}>
+                                            Best Recall
+                                        </span>
+                                    </td>
+                                    <td style={{ fontWeight: 700 }}>88.36%</td>
+                                    <td style={{ fontWeight: 700 }}>0.8110</td>
+                                    <td style={{ fontWeight: 700, color: 'var(--risk-med)' }}>0.8310</td>
+                                    <td style={{ fontWeight: 700 }}>0.8209</td>
+                                    <td style={{ fontWeight: 700 }}>0.9239</td>
+                                </tr>
+                                <tr>
+                                    <td style={{ fontWeight: 600 }}>MLP Neural Network</td>
+                                    <td>85.54%</td>
+                                    <td>0.7746</td>
+                                    <td>0.7746</td>
+                                    <td>0.7746</td>
+                                    <td>0.9004</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style={{ marginTop: '1.5rem' }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setShowVis(prev => !prev)}>
+                            👁️ {showVis ? "Hide" : "Toggle"} Evaluation Visualisation Report
+                        </button>
+                        {showVis && (
+                            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                                <img 
+                                    src="/static/reports/ews_evaluation_report.png" 
+                                    alt="Evaluation Report Visualizations" 
+                                    style={{ maxWidth: '100%', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)' }} 
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Alerts View Sub-component
+        function AlertsView({ token }) {
+            const [alerts, setAlerts] = useState([]);
+            const [status, setStatus] = useState('All');
+            const [loading, setLoading] = useState(true);
+            const [updatingId, setUpdatingId] = useState(null);
+
+            const fetchAlerts = async () => {
+                setLoading(true);
+                try {
+                    const res = await api.get('/api/alerts/', {
+                        headers: { Authorization: `Token ${token}` },
+                        params: { status }
+                    });
+                    setAlerts(res.data.results || []);
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const patchStatus = async (id, s) => {
+                setUpdatingId(id);
+                try {
+                    await api.patch(`/api/alerts/${id}/`, { status: s }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    fetchAlerts();
+                } catch (e) {
+                    console.error(e);
+                    alert("Status update failed. Verify roles.");
+                } finally {
+                    setUpdatingId(null);
+                }
+            };
+
+            useEffect(() => {
+                fetchAlerts();
+            }, [status]);
+
+            return (
+                <div className="card">
+                    <h3 className="card-title">Intervention Alerts</h3>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <select value={status} onChange={e => setStatus(e.target.value)} className="form-input" style={{ width: '180px' }}>
+                            <option value="All">All Statuses</option>
+                            <option value="open">Open</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                    </div>
+
+                    {loading ? <div className="spinner"></div> : (
+                        <div className="table-wrapper">
+                            <table className="ews-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Faculty</th>
+                                        <th>Risk level</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                        <th>Recommendation</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {alerts.map((a, i) => (
+                                        <tr key={i}>
+                                            <td style={{ fontWeight: 600 }}>{a.student_id}</td>
+                                            <td>{a.faculty}</td>
+                                            <td>
+                                                <span className={`badge badge-${a.risk_tier === 'High Risk' ? 'high' : 'med'}`}>
+                                                    {a.risk_tier}
+                                                </span>
+                                            </td>
+                                            <td>{(a.probability * 100).toFixed(1)}%</td>
+                                            <td>
+                                                <span className={`badge badge-status-${a.status}`}>
+                                                    {a.status.replace('_', ' ')}
+                                                </span>
+                                            </td>
+                                            <td style={{ fontSize: '0.8rem', maxWidth: '300px' }}>{a.actionable_intervention}</td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                                    {a.status === 'open' && (
+                                                        <button className="btn btn-secondary btn-sm" disabled={updatingId === a.id} onClick={() => patchStatus(a.id, 'in_progress')}>Start</button>
+                                                    )}
+                                                    {a.status !== 'resolved' && (
+                                                        <button className="btn btn-primary btn-sm" style={{ backgroundColor: 'var(--risk-low)', borderColor: 'var(--risk-low)' }} disabled={updatingId === a.id} onClick={() => patchStatus(a.id, 'resolved')}>Resolve</button>
+                                                    )}
+                                                    {a.status === 'resolved' && (
+                                                        <button className="btn btn-secondary btn-sm" disabled={updatingId === a.id} onClick={() => patchStatus(a.id, 'open')}>Re-open</button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Admin Ingest Console Sub-component
+        function AdminConsoleView({ token, user }) {
+            const [formData, setFormData] = useState(getInitialFormState());
+            const [submitting, setSubmitting] = useState(false);
+            const [result, setResult] = useState(null);
+            const [err, setErr] = useState(null);
+
+            const [file, setFile] = useState(null);
+            const [csvResult, setCsvResult] = useState(null);
+            const [csvUploading, setCsvUploading] = useState(false);
+            const [csvError, setCsvError] = useState(null);
+
+            function getInitialFormState() {
+                return {
+                    student_id: '', first_name: '', last_name: '', email: '',
+                    Gender: '1', Age_at_Matriculation: '20', Marital_Status_Binary: '0', Special_Needs_Status: '0',
+                    Mother_Education_Level: '3', Father_Education_Level: '3', Mother_Occupation: '2', Father_Occupation: '2',
+                    First_Generation_Student: '0', UTME_PostUME_Score: '140.0', Secondary_School_Exit_Grade: '135.0',
+                    Study_Mode: '1', Faculty: 'Sciences', Year_of_Study: '2', Non_Resident_Student: '0', Hostel_Residency: '1',
+                    School_Fees_Payment_Status: '1', Fee_Arrears_Status: '0', Bursary_Scholarship_Status: '0',
+                    Units_Registered_Semester_1: '6', Units_Passed_Semester_1: '6', Assessments_Sat_Semester_1: '6', Units_No_Assessment_Semester_1: '0', GPA_Semester_1_5pt: '3.5', Pass_Rate_Semester_1: '1.0',
+                    Units_Registered_Semester_2: '6', Units_Passed_Semester_2: '5', Assessments_Sat_Semester_2: '6', Units_No_Assessment_Semester_2: '0', GPA_Semester_2_5pt: '3.2', Pass_Rate_Semester_2: '0.83',
+                    CGPA_5point_Scale: '3.35', GPA_Change: '-0.3'
+                };
+            }
+
+            const fillDemoData = (type) => {
+                if (type === 'high') {
+                    setFormData({
+                        student_id: `STU-DEMO-${Math.floor(1000 + Math.random()*9000)}`,
+                        first_name: 'Uche', last_name: 'Adebayo', email: 'uche.adebayo@univel.edu.ng',
+                        Gender: '1', Age_at_Matriculation: '21', Marital_Status_Binary: '0', Special_Needs_Status: '0',
+                        Mother_Education_Level: '2', Father_Education_Level: '3', Mother_Occupation: '2', Father_Occupation: '1',
+                        First_Generation_Student: '1', UTME_PostUME_Score: '110.0', Secondary_School_Exit_Grade: '105.0',
+                        Study_Mode: '1', Faculty: 'Engineering', Year_of_Study: '3', Non_Resident_Student: '1', Hostel_Residency: '0',
+                        School_Fees_Payment_Status: '0', Fee_Arrears_Status: '1', Bursary_Scholarship_Status: '0',
+                        Units_Registered_Semester_1: '7', Units_Passed_Semester_1: '2', Assessments_Sat_Semester_1: '3', Units_No_Assessment_Semester_1: '4', GPA_Semester_1_5pt: '1.10', Pass_Rate_Semester_1: '0.28',
+                        Units_Registered_Semester_2: '7', Units_Passed_Semester_2: '0', Assessments_Sat_Semester_2: '1', Units_No_Assessment_Semester_2: '6', GPA_Semester_2_5pt: '0.00', Pass_Rate_Semester_2: '0.00',
+                        CGPA_5point_Scale: '0.55', GPA_Change: '-1.10'
+                    });
+                } else {
+                    setFormData({
+                        student_id: `STU-DEMO-${Math.floor(1000 + Math.random()*9000)}`,
+                        first_name: 'Amara', last_name: 'Eze', email: 'amara.eze@univel.edu.ng',
+                        Gender: '0', Age_at_Matriculation: '18', Marital_Status_Binary: '0', Special_Needs_Status: '0',
+                        Mother_Education_Level: '14', Father_Education_Level: '14', Mother_Occupation: '9', Father_Occupation: '10',
+                        First_Generation_Student: '0', UTME_PostUME_Score: '175.0', Secondary_School_Exit_Grade: '168.0',
+                        Study_Mode: '1', Faculty: 'Sciences', Year_of_Study: '2', Non_Resident_Student: '0', Hostel_Residency: '1',
+                        School_Fees_Payment_Status: '1', Fee_Arrears_Status: '0', Bursary_Scholarship_Status: '1',
+                        Units_Registered_Semester_1: '6', Units_Passed_Semester_1: '6', Assessments_Sat_Semester_1: '6', Units_No_Assessment_Semester_1: '0', GPA_Semester_1_5pt: '4.75', Pass_Rate_Semester_1: '1.0',
+                        Units_Registered_Semester_2: '6', Units_Passed_Semester_2: '6', Assessments_Sat_Semester_2: '6', Units_No_Assessment_Semester_2: '0', GPA_Semester_2_5pt: '4.85', Pass_Rate_Semester_2: '1.0',
+                        CGPA_5point_Scale: '4.80', GPA_Change: '0.10'
+                    });
+                }
+                setResult(null);
+            };
+
+            const handleUpload = async (e) => {
+                e.preventDefault();
+                if (!file) return;
+                setCsvUploading(true);
+                setCsvError(null);
+                setCsvResult(null);
+                const data = new FormData();
+                data.append('file', file);
+                try {
+                    const res = await api.post('/api/upload/', data, {
+                        headers: { 
+                            'Content-Type': 'multipart/form-data',
+                            Authorization: `Token ${token}` 
+                        }
+                    });
+                    setCsvResult(res.data);
+                } catch (err) {
+                    setCsvError(err.response?.data?.error || "Error parsing CSV file format.");
+                } finally {
+                    setCsvUploading(false);
+                }
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setSubmitting(true);
+                setErr(null);
+                setResult(null);
+
+                const payload = {};
+                Object.keys(formData).forEach(k => {
+                    const val = formData[k];
+                    if (['student_id', 'first_name', 'last_name', 'email', 'Faculty'].includes(k)) {
+                        payload[k] = val;
+                    } else if (['UTME_PostUME_Score', 'Secondary_School_Exit_Grade', 'GPA_Semester_1_5pt', 'Pass_Rate_Semester_1', 'GPA_Semester_2_5pt', 'Pass_Rate_Semester_2', 'CGPA_5point_Scale', 'GPA_Change'].includes(k)) {
+                        payload[k] = parseFloat(val) || 0.0;
+                    } else {
+                        payload[k] = parseInt(val) || 0;
+                    }
+                });
+
+                try {
+                    const res = await api.post('/api/students/manual-entry/', payload, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    setResult(res.data);
+                } catch (e) {
+                    setErr(e.response?.data || { error: "Failed to submit student record." });
+                } finally {
+                    setSubmitting(false);
+                }
+            };
+
+            return (
+                <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+                    <div className="card">
+                        <h3 className="card-title">Batch Student CSV Upload</h3>
+                        <form onSubmit={handleUpload} style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1rem' }}>
+                            <input type="file" accept=".csv" onChange={e => setFile(e.target.files[0])} className="form-input" style={{ flex: 1 }} />
+                            <button type="submit" className="btn btn-primary" disabled={csvUploading}>{csvUploading ? "Uploading..." : "Upload CSV"}</button>
+                        </form>
+                        {csvError && <p style={{ color: 'var(--risk-high)', fontSize: '0.85rem', marginTop: '0.5rem' }}>{csvError}</p>}
+                        {csvResult && (
+                            <div style={{ marginTop: '1rem', fontSize: '0.85rem' }}>
+                                <div style={{ color: 'var(--risk-low)' }}>Imported Successfully: {csvResult.success_count} rows</div>
+                                {csvResult.failed_count > 0 && <div style={{ color: 'var(--risk-high)' }}>Failed: {csvResult.failed_count} rows</div>}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+                            <h3 className="card-title" style={{ border: 'none', padding: 0, margin: 0 }}>Predict Custom Student</h3>
+                            <div>
+                                <button className="btn btn-secondary btn-sm" style={{ marginRight: '0.5rem' }} onClick={() => fillDemoData('high')}>Load High-Risk Demo</button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => fillDemoData('low')}>Load Low-Risk Demo</button>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="form-grid-3">
+                            <div className="form-group">
+                                <label className="form-label">Student ID</label>
+                                <input type="text" name="student_id" value={formData.student_id} onChange={e => setFormData({...formData, student_id: e.target.value})} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">First Name</label>
+                                <input type="text" name="first_name" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Last Name</label>
+                                <input type="text" name="last_name" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Gender</label>
+                                <select name="Gender" value={formData.Gender} onChange={e => setFormData({...formData, Gender: e.target.value})} className="form-input">
+                                    <option value="1">Male</option>
+                                    <option value="0">Female</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Age at Matriculation</label>
+                                <input type="number" name="Age_at_Matriculation" value={formData.Age_at_Matriculation} onChange={e => setFormData({...formData, Age_at_Matriculation: e.target.value})} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Faculty</label>
+                                <select name="Faculty" value={formData.Faculty} onChange={e => setFormData({...formData, Faculty: e.target.value})} className="form-input">
+                                    <option value="Sciences">Sciences</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Arts">Arts</option>
+                                    <option value="Social_Sciences">Social Sciences</option>
+                                    <option value="Law">Law</option>
+                                    <option value="Medicine">Medicine</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">CGPA (Scale 5.0)</label>
+                                <input type="number" step="0.01" name="CGPA_5point_Scale" value={formData.CGPA_5point_Scale} onChange={e => setFormData({...formData, CGPA_5point_Scale: e.target.value})} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Fee Arrears</label>
+                                <select name="Fee_Arrears_Status" value={formData.Fee_Arrears_Status} onChange={e => setFormData({...formData, Fee_Arrears_Status: e.target.value})} className="form-input">
+                                    <option value="0">No Arrears</option>
+                                    <option value="1">Has Arrears</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">School Fees Paid</label>
+                                <select name="School_Fees_Payment_Status" value={formData.School_Fees_Payment_Status} onChange={e => setFormData({...formData, School_Fees_Payment_Status: e.target.value})} className="form-input">
+                                    <option value="1">Paid</option>
+                                    <option value="0">Unpaid</option>
+                                </select>
+                            </div>
+                            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                                <button type="submit" className="btn btn-primary" disabled={submitting}>Run Evaluation</button>
+                            </div>
+                        </form>
+
+                        {err && (
+                            <div style={{ color: 'var(--risk-high)', fontSize: '0.85rem', marginTop: '1rem' }}>
+                                <strong>Error:</strong> {JSON.stringify(err)}
+                            </div>
+                        )}
+
+                        {result && (
+                            <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                                <div style={{ backgroundColor: 'var(--bg-tertiary)', padding: '1rem', borderRadius: 'var(--radius-sm)', textAlign: 'center', minWidth: '150px' }}>
+                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Dropout probability</span>
+                                    <div style={{ fontSize: '2rem', fontWeight: 800 }}>{(result.prediction.probability * 100).toFixed(1)}%</div>
+                                    <span className={`badge badge-${result.prediction.risk_tier === 'High Risk' ? 'high' : result.prediction.risk_tier === 'Medium Risk' ? 'med' : 'low'}`} style={{ marginTop: '0.25rem' }}>
+                                        {result.prediction.risk_tier}
+                                    </span>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <strong>Recommendation:</strong>
+                                    <p style={{ marginTop: '0.25rem', fontSize: '0.92rem', lineHeight: '1.4' }}>{result.prediction.actionable_intervention}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+    {% endverbatim %}
+</body>
+</html>
