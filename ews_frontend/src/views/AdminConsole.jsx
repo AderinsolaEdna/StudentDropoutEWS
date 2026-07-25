@@ -1,6 +1,43 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Upload, FileSpreadsheet, Send, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Upload, FileSpreadsheet, Send, RefreshCw, AlertTriangle, ShieldCheck, CheckCircle2, XCircle, Download } from 'lucide-react';
+
+// Columns accepted by StudentRecordSerializer (see ews_backend/ews_api/models.py / serializers.py)
+const REQUIRED_COLUMNS = [
+  'Gender', 'Age_at_Matriculation', 'Marital_Status_Binary', 'Special_Needs_Status',
+  'Mother_Education_Level', 'Father_Education_Level', 'Mother_Occupation', 'Father_Occupation',
+  'First_Generation_Student', 'UTME_PostUME_Score', 'Secondary_School_Exit_Grade',
+  'Study_Mode', 'Faculty', 'Year_of_Study', 'Non_Resident_Student', 'Hostel_Residency',
+  'School_Fees_Payment_Status', 'Fee_Arrears_Status', 'Bursary_Scholarship_Status',
+  'Units_Registered_Semester_1', 'Units_Passed_Semester_1', 'Assessments_Sat_Semester_1',
+  'Units_No_Assessment_Semester_1', 'GPA_Semester_1_5pt', 'Pass_Rate_Semester_1',
+  'Units_Registered_Semester_2', 'Units_Passed_Semester_2', 'Assessments_Sat_Semester_2',
+  'Units_No_Assessment_Semester_2', 'GPA_Semester_2_5pt', 'Pass_Rate_Semester_2',
+  'CGPA_5point_Scale', 'GPA_Change',
+];
+
+// Identity columns are optional — if omitted, a placeholder student is auto-generated
+const OPTIONAL_IDENTITY_COLUMNS = ['student_id', 'first_name', 'last_name', 'email'];
+
+const SAMPLE_ROW = [
+  '1', '21', '0', '0', '3', '4', '2', '5', '0', '265', '68',
+  '0', 'Engineering', '2', '0', '1', '1', '0', '0',
+  '6', '5', '6', '0', '3.8', '0.83',
+  '6', '4', '6', '0', '3.2', '0.67',
+  '3.5', '-0.3',
+];
+
+function downloadSampleCSV() {
+  const header = ['student_id', ...REQUIRED_COLUMNS].join(',');
+  const row = ['STU-0001', ...SAMPLE_ROW].join(',');
+  const blob = new Blob([`${header}\n${row}\n`], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ews_sample_upload_template.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminConsole({ token, userRole }) {
   // Tabs: 'upload' or 'manual'
@@ -252,6 +289,51 @@ export default function AdminConsole({ token, userRole }) {
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Only Administrator accounts have permission to run batch CSV uploads.</p>
             </div>
           ) : (
+            <>
+            {/* Dataset Requirements & Sample Guidance */}
+            <div className="card" style={{ backgroundColor: 'var(--bg-tertiary)', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <FileSpreadsheet size={18} /> Dataset Requirements
+              </h4>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Uploads must be a <strong>.csv</strong> file with one row per student-semester record. Column headers
+                must exactly match the ground-truth feature schema below (case-sensitive).
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ padding: '1rem', borderRadius: 'var(--radius-sm)', borderLeft: '4px solid var(--risk-low)' }}>
+                  <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                    <CheckCircle2 size={16} color="green" /> Include
+                  </h5>
+                  <ul style={{ fontSize: '0.85rem', color: 'var(--text-muted)', paddingLeft: '1.1rem', margin: 0 }}>
+                    <li>Demographics: Gender, Age_at_Matriculation, Marital_Status_Binary, Special_Needs_Status</li>
+                    <li>Family background: Mother/Father Education Level &amp; Occupation, First_Generation_Student</li>
+                    <li>Admission &amp; academics: UTME_PostUME_Score, Secondary_School_Exit_Grade, Faculty, Study_Mode, Year_of_Study</li>
+                    <li>Residency &amp; finance: Non_Resident_Student, Hostel_Residency, School_Fees_Payment_Status, Fee_Arrears_Status, Bursary_Scholarship_Status</li>
+                    <li>Per-semester performance: Units_Registered/Passed, Assessments_Sat, Units_No_Assessment, GPA (5pt), Pass_Rate for Semesters 1 &amp; 2, CGPA_5point_Scale, GPA_Change</li>
+                    <li>Optional identifiers: student_id, first_name, last_name, email (auto-generated if omitted)</li>
+                  </ul>
+                </div>
+                <div style={{ padding: '1rem', borderRadius: 'var(--radius-sm)', borderLeft: '4px solid var(--risk-high)' }}>
+                  <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                    <XCircle size={16} color="var(--risk-high)" /> Do Not Include
+                  </h5>
+                  <ul style={{ fontSize: '0.85rem', color: 'var(--text-muted)', paddingLeft: '1.1rem', margin: 0 }}>
+                    <li>Dropout_Status / any known outcome or label column — this is predicted by the model, not supplied</li>
+                    <li>Sensitive identifiers beyond what's needed (national ID numbers, phone numbers, home addresses)</li>
+                    <li>Free-text or unstructured fields (notes, comments, remarks)</li>
+                    <li>Duplicate rows for the same student in the same semester</li>
+                    <li>Blank/null values in required numeric columns — use 0 where a true zero applies</li>
+                    <li>Columns not in the schema (extra columns are ignored, but misnamed required columns will fail validation)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <button type="button" className="btn btn-secondary" onClick={downloadSampleCSV} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Download size={16} /> Download Sample CSV Template
+              </button>
+            </div>
+
             <form onSubmit={handleCSVUpload} style={{ marginTop: '1.5rem' }}>
               <div style={{ border: '2px dashed var(--border-color)', borderRadius: 'var(--radius-md)', padding: '3rem', textAlign: 'center', cursor: 'pointer', marginBottom: '1.5rem', transition: 'var(--transition)' }}>
                 <input 
@@ -283,6 +365,7 @@ export default function AdminConsole({ token, userRole }) {
                 </button>
               </div>
             </form>
+            </>
           )}
 
           {/* Upload Results report */}

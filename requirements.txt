@@ -1,10 +1,10 @@
 # Core Data Science
-numpy==2.4.6
-pandas==3.0.3
-scipy==1.17.1
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
 
 # Machine Learning
-scikit-learn==1.9.0
+scikit-learn==1.7.2
 xgboost==3.2.0
 imbalanced-learn==0.14.2
 joblib==1.5.3
