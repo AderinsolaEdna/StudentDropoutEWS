@@ -3,6 +3,7 @@
 [![Django Version](https://img.shields.io/badge/django-4.2-green.svg)](#)
 [![React Version](https://img.shields.io/badge/react-18.0-blue.svg)](#)
 [![Deploy on Render](https://img.shields.io/badge/Deploy%20to-Render-4642FF?style=flat&logo=render&logoColor=white)](#production-deployment-on-render)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=flat&logo=github&logoColor=white)](https://github.com/AderinsolaEdna/StudentDropoutAI-EWS)
 
 An intelligent, machine-learning-driven Early Warning System (EWS) designed to identify university students at risk of academic dropout. The platform leverages serialized machine learning models (XGBoost & Scikit-Learn) alongside rule-based expert recommendation engines to help academic advisers intervene early and improve student retention rates.
 
