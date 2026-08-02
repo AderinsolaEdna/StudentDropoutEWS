@@ -75,22 +75,41 @@ The Django backend serves the REST API and runs machine learning inference.
 
 ---
 
-## Step 3: Run Database Seeding
+## Step 3: Run Database Seeding (For Render Free Tier)
 
 Once the backend service status turns to **Live**, you must seed the PostgreSQL database with the ground-truth student dataset.
 
-1. Go to your backend service dashboard on Render.
-2. In the left-hand navigation pane, click on **Shell**.
-3. Run the following command to run the Python data ingestion script:
-   ```bash
-   python ews_backend/manage.py seed_from_csv
+Since Render's **Free Tier** does not support the interactive **Shell** tab, you should run the database seeding and admin user creation commands from your **local machine** pointing to your Render Postgres database using the **External Database URL** (copied from Render in Step 1).
+
+### For Windows (PowerShell):
+1. Open your terminal/PowerShell in your project directory.
+2. Set the `DATABASE_URL` environment variable using your database's **External Database URL**:
+   ```powershell
+   $env:DATABASE_URL="[Your External Database URL]"
    ```
-   *This command parses the Nigerian Student Dropout Dataset CSV, runs the machine learning risk predictions in a vectorized batch, and seeds 4,400+ student profiles and risk alerts into PostgreSQL.*
-4. *(Optional)* To access the Django Admin Portal (`/admin/`), create an admin user by running:
-   ```bash
-   python ews_backend/manage.py createsuperuser
+3. Run the database seeding command:
+   ```powershell
+   .venv\Scripts\python ews_backend/manage.py seed_from_csv
    ```
-   Follow the prompts to enter a username, email, and password.
+4. *(Optional)* Create your Django Admin superuser:
+   ```powershell
+   .venv\Scripts\python ews_backend/manage.py createsuperuser
+   ```
+
+### For macOS / Linux (Terminal):
+1. Open your terminal in your project directory.
+2. Set the `DATABASE_URL` environment variable using your database's **External Database URL**:
+   ```bash
+   export DATABASE_URL="[Your External Database URL]"
+   ```
+3. Run the database seeding command:
+   ```bash
+   .venv/bin/python ews_backend/manage.py seed_from_csv
+   ```
+4. *(Optional)* Create your Django Admin superuser:
+   ```bash
+   .venv/bin/python ews_backend/manage.py createsuperuser
+   ```
 
 ---
 
