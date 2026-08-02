@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ShieldAlert, Sun, Moon, LogOut, LayoutDashboard, BellRing, Settings, UserCheck } from 'lucide-react';
 
+// Configure Axios baseURL for Render/production deployment
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || '';
+
 // Sub views
 import Overview from './views/Overview';
 import StudentDetail from './views/StudentDetail';

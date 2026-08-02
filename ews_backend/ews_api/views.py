@@ -9,7 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction, models
 from django.shortcuts import get_object_or_404
 import json
 import os
