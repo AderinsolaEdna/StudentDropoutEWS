@@ -83,52 +83,9 @@ Use the credentials below to log in and inspect the role-based views:
 
 ---
 
-## ☁️ Production Deployment on Render
+## ☁️ Cloud Deployment (Production)
 
-You can deploy the unified Django service directly to **Render** with a **PostgreSQL** database:
-
-### 1. Add Production Dependencies
-Add the following lines to your `requirements.txt`:
-```text
-gunicorn==21.2.0           # WSGI HTTP Server
-dj-database-url==2.1.0     # Parse Database Connection URL
-psycopg2-binary==2.9.9     # PostgreSQL Driver
-whitenoise==6.6.0          # Safe, High-Performance Static File Serving
-```
-
-### 2. Configure Settings for WhiteNoise
-In `ews_backend/ews_backend/settings.py`:
-1. Add the WhiteNoise middleware directly after `SecurityMiddleware`:
-   ```python
-   MIDDLEWARE = [
-       'corsheaders.middleware.CorsMiddleware',
-       'django.middleware.security.SecurityMiddleware',
-       'whitenoise.middleware.WhiteNoiseMiddleware', # Add this line
-       ...
-   ]
-   ```
-2. Define the static files destination:
-   ```python
-   STATIC_ROOT = BASE_DIR / 'staticfiles'
-   ```
-
-### 3. Setup Render Web Service
-Create a new **Web Service** on Render and link it to your GitHub Repository with the configurations below:
-
-* **Runtime**: `Python 3`
-* **Build Command**:
-  ```bash
-  pip install -r requirements.txt && python ews_backend/manage.py collectstatic --noinput && python ews_backend/manage.py migrate && python ews_backend/manage.py seed_from_csv
-  ```
-* **Start Command**:
-  ```bash
-  gunicorn --chdir ews_backend ews_backend.wsgi:application
-  ```
-* **Environment Variables**:
-  * `DATABASE_URL`: *<Your Render PostgreSQL Connection URI>*
-  * `DJANGO_SECRET_KEY`: *<Your Secure Production Secret Key>*
-  * `DJANGO_DEBUG`: `False`
-  * `PYTHON_VERSION`: `3.11` (or your preferred Python version)
+For details on how to deploy the system to a cloud environment (e.g. Render with a production PostgreSQL database), please refer to the [Render Deployment Guide](file:///c:/Users/USER/OneDrive/Desktop/SCHOOL/AI-EWS%20v2/DEPLOYMENT.md).
 
 ---
 
